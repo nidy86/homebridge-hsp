@@ -1,16 +1,16 @@
 {
   "private": true,
-  "displayName": "Plugin Name",
-  "name": "homebridge-plugin-name",
+  "displayName": "Haas+Sohn HSP Pellet Stove",
+  "name": "homebridge-hsp",
   "version": "1.0.0",
-  "description": "A short description about what your plugin does.",
+  "description": "A node to control your HSP pellet stove with homebridge.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/USERNAME/GITHUB_PROJECT_NAME.git"
+    "url": "git://github.com/nidy86/homebridge-hsp.git"
   },
   "bugs": {
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME/issues"
+    "url": "https://github.com/nidy86/homebridge-hsp.git/issues"
   },
   "engines": {
     "node": ">=10.17.0",
@@ -28,14 +28,14 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "@types/node": "^14.10.3",
-    "@typescript-eslint/eslint-plugin": "^4.1.1",
-    "@typescript-eslint/parser": "^4.1.1",
+    "@types/node": "^14.11.2",
+    "@typescript-eslint/eslint-plugin": "^4.2.0",
+    "@typescript-eslint/parser": "^4.2.0",
     "eslint": "^7.9.0",
-    "homebridge": "^1.2.2",
+    "homebridge": "^1.2.3",
     "nodemon": "^2.0.4",
     "rimraf": "^3.0.2",
     "ts-node": "^9.0.0",
-    "typescript": "^4.0.2"
+    "typescript": "^4.0.3"
   }
 }

@@ -2,7 +2,9 @@ import { Service, PlatformAccessory, CharacteristicValue, CharacteristicSetCallb
 
 import { HspHomebridgePlatform } from './platform';
 
+import { Headers } from 'node-fetch';
 import fetch from 'node-fetch';
+import md5 from 'md5';
 
 
 /**
@@ -17,10 +19,12 @@ export default class HspPlatformAccessory {
    * These are just used to create a working example
    * You should implement your own code to track the state of your accessory
    */
-  private exampleStates = {
+  private state = {
     On: false,
-    Brightness: 100,
+    Percentage: 0,
   }
+
+  private url = "localhost";
 
   private msg = {
       payload: {
@@ -112,52 +116,34 @@ export default class HspPlatformAccessory {
       .on('get', this.getWeekProgrammOn.bind(this));
 
     const ecoModeService = this.accessory.getService('Eco-Mode') ||
-      this.accessory.addService(this.platform.Service.Switch,'EcoMode',this.platform.api.hap.uuid.generate('HSP-ecoMode'));
+      this.accessory.addService(this.platform.Service.Switch,'Eco-Mode',this.platform.api.hap.uuid.generate('HSP-ecoMode'));
 
     ecoModeService.getCharacteristic(this.platform.Characteristic.On)
       .on('set', this.setEcoModeOn.bind(this))
       .on('get', this.getEcoModeOn.bind(this));
 
+    const stateService = this.accessory.getService('Status') ||
+      this.accessory.addService(this.platform.Service.Lightbulb,'Status',this.platform.api.hap.uuid.generate('HSP-state'));
 
-
-
+    stateService.getCharacteristic(this.platform.Characteristic.Brightness)
+      .on('set', this.setStateBrightness.bind(this));
+    
     /**
      * TEST Section: Define
      */
-    // create a new Input Source service
-    const inputSource = this.accessory.getService('InputSource') || 
-      this.accessory.addService(this.platform.Service.InputSource,'InputSource','HSP-InputSource');
-
-    // create handlers for required characteristics
-    inputSource.getCharacteristic(this.platform.Characteristic.ConfiguredName)
-      .on('get', this.handleConfiguredNameGet.bind(this))
-      .on('set', this.handleConfiguredNameSet.bind(this));
-
-    inputSource.getCharacteristic(this.platform.Characteristic.InputSourceType)
-      .on('get', this.handleInputSourceTypeGet.bind(this));
-
-    inputSource.getCharacteristic(this.platform.Characteristic.IsConfigured)
-      .on('get', this.handleIsConfiguredGet.bind(this))
-      .on('set', this.handleIsConfiguredSet.bind(this));
-
-    inputSource.getCharacteristic(this.platform.Characteristic.Name)
-      .on('get', this.handleNameGet.bind(this));
-
-    inputSource.getCharacteristic(this.platform.Characteristic.CurrentVisibilityState)
-      .on('get', this.handleCurrentVisibilityStateGet.bind(this));
-
-
+    
+    
     /**
      * Updating characteristics values asynchronously.
      * 
      */
-    let url = this.platform.config.host;
+    this.url = this.platform.config.host as string;
     let interval = (this.platform.config.interval as number)*1000 || 60000;
 
     let configDetails = false;
     setInterval(async () => {
 
-      let response = await fetch(`http://${url}/status.cgi`);
+      let response = await fetch(`http://${this.url}/status.cgi`);
       let data = await response.json();
 
       //let changed = this.msg.payload.weekProgramStart!=data.wprg;
@@ -186,23 +172,20 @@ export default class HspPlatformAccessory {
           zone: data.zone
       };
       
-      //sthis.platform.log.debug('Anfrage:',this.msg.payload);
-      // EXAMPLE - inverse the trigger
-      //motionDetected = !motionDetected;
-      /*if(!configDetails){
-        this.service.setCharacteristic(this.platform.Characteristic.Model, this.msg.payload.meta.type);
-        this.service.setCharacteristic(this.platform.Characteristic.SerialNumber, this.msg.payload.meta.serialNumber);
-        //configDetails = true;
-      }*/
+      //this.platform.log.debug('response:',this.msg.payload);
 
       // push the new value to HomeKit
       temperatureActualService.updateCharacteristic(this.platform.Characteristic.CurrentTemperature,this.msg.payload.isTemp);
       temperatureSetService.updateCharacteristic(this.platform.Characteristic.CurrentTemperature,this.msg.payload.setTemp);
+      
       //if(changed){
+      this.service.updateCharacteristic(this.platform.Characteristic.On,this.msg.payload.start);
       weekProgrammService.updateCharacteristic(this.platform.Characteristic.On,this.msg.payload.weekProgramStart);
       ecoModeService.updateCharacteristic(this.platform.Characteristic.On,this.msg.payload.ecoMode);
 
       //}
+
+      
 
       this.platform.log.debug('Actual Temperature:', this.msg.payload.isTemp);
       this.platform.log.debug('Set Temperature:', this.msg.payload.setTemp);
@@ -211,16 +194,46 @@ export default class HspPlatformAccessory {
 
   setWeekProgrammOn(value: CharacteristicValue, callback: CharacteristicSetCallback) {
     this.msg.payload.weekProgramStart = value as boolean;
-
     this.platform.log.debug('Set WeekProgrammStart On ->', value);
+    
+    async() => {
+
+      const setData = {};
+            setData['sp_temp'] = this.msg.payload;
+      const dataToSend = JSON.stringify(setData);
+      const header = new Headers({
+          'Host':	this.url,
+          'Accept':	'*/*',
+          'Proxy-Connection':	'keep-alive',
+          'X-BACKEND-IP':	'https://app.hsp.com',
+          'Accept-Language': 'de-DE;q=1.0, en-DE;q=0.9',
+          'Accept-Encoding': 'gzip;q=1.0, compress;q=0.5',
+          'token': '32bytes',
+          'Content-Type': 'application/json',
+          'User-Agent': 'ios',
+          'Connection':	'keep-alive',
+          'X-HS-PIN': 5518,
+      });
+
+      let res = await fetch(`http://${this.url}/status.cgi`, {
+          headers: header,
+          method: 'POST',
+          body: dataToSend
+      }).then(d => d.json());
+
+      this.platform.log.debug("RESULT: ",res);
+      this.platform.log.debug('Set WeekProgrammStart On ->', value);
+    }
 
     callback(null);
   }
 
   getWeekProgrammOn(callback: CharacteristicGetCallback) {
     const isOn = this.msg.payload.weekProgramStart;
+    
 
     this.platform.log.debug('Get WeekProgrammStart On ->', isOn);
+    
 
     // you must call the callback function
     // the first argument should be null if there were no errors
@@ -256,7 +269,7 @@ export default class HspPlatformAccessory {
     // implement your own code to turn your device on/off
     this.msg.payload.start = value as boolean;
 
-    this.platform.log.debug('Set Characteristic On ->', value);
+    this.platform.log.debug('Set Running On ->', value);
 
     // you must call the callback function
     callback(null);
@@ -280,7 +293,7 @@ export default class HspPlatformAccessory {
     // implement your own code to check if the device is on
     const isOn = this.msg.payload.start;
 
-    this.platform.log.debug('Get Characteristic Running On ->', isOn);
+    this.platform.log.debug('Get Running Running On ->', isOn);
 
     // you must call the callback function
     // the first argument should be null if there were no errors
@@ -288,92 +301,26 @@ export default class HspPlatformAccessory {
     callback(null, isOn);
   }
 
+  setStateBrightness(value, callback) {
 
+    this.platform.log.debug('Cannot set state with homekit');
 
+    // you must call the callback function
+    callback(1);
+  }
 
+  getStateBrightness(callback: CharacteristicSetCallback) {
 
+    const brightness = this.state.Percentage;
 
-  /**
-   * TEST Section: functions
-   */
+    this.platform.log.debug('Get State Brightness ->', brightness);
 
-   /**
-   * Handle requests to get the current value of the "Configured Name" characteristic
-   */
-  handleConfiguredNameGet(callback) {
-    this.platform.log.debug('Triggered GET ConfiguredName');
-
-    // set this to a valid value for ConfiguredName
-    const currentValue = 1;
-
-    callback(null, currentValue);
+    callback(null,brightness);
   }
 
   /**
-   * Handle requests to set the "Configured Name" characteristic
+   * HSP POST functions
    */
-  handleConfiguredNameSet(value, callback) {
-    this.platform.log.debug('Triggered SET ConfiguredName:', value);
 
-    callback(null);
-  }
-
-  /**
-   * Handle requests to get the current value of the "Input Source Type" characteristic
-   */
-  handleInputSourceTypeGet(callback) {
-    this.platform.log.debug('Triggered GET InputSourceType');
-
-    // set this to a valid value for InputSourceType
-    const currentValue = 1;
-
-    callback(null, currentValue);
-  }
-
-
-  /**
-   * Handle requests to get the current value of the "Is Configured" characteristic
-   */
-  handleIsConfiguredGet(callback) {
-    this.platform.log.debug('Triggered GET IsConfigured');
-
-    // set this to a valid value for IsConfigured
-    const currentValue = 1;
-
-    callback(null, currentValue);
-  }
-
-  /**
-   * Handle requests to set the "Is Configured" characteristic
-   */
-  handleIsConfiguredSet(value, callback) {
-    this.platform.log.debug('Triggered SET IsConfigured:', value);
-
-    callback(null);
-  }
-
-  /**
-   * Handle requests to get the current value of the "Name" characteristic
-   */
-  handleNameGet(callback) {
-    this.platform.log.debug('Triggered GET Name');
-
-    // set this to a valid value for Name
-    const currentValue = 1;
-
-    callback(null, currentValue);
-  }
-
-
-  /**
-   * Handle requests to get the current value of the "Current Visibility State" characteristic
-   */
-  handleCurrentVisibilityStateGet(callback) {
-    this.platform.log.debug('Triggered GET CurrentVisibilityState');
-
-    // set this to a valid value for CurrentVisibilityState
-    const currentValue = 1;
-
-    callback(null, currentValue);
-  }
+  
 }

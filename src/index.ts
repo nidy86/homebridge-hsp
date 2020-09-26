@@ -1,6 +1,7 @@
 import { API } from 'homebridge';
 
 import { PLATFORM_NAME } from './settings';
+import { PLUGIN_NAME } from './settings';
 import { HspHomebridgePlatform } from './platform'; 
 
 /**

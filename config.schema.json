@@ -1,16 +1,50 @@
 {
   "pluginAlias": "HspHomebridgePlugin",
   "pluginType": "platform",
-  "singular": true,
+  "singular": false,
   "schema": {
     "type": "object",
     "properties": {
       "name": {
-        "title": "Name",
-        "type": "string",
-        "required": true,
-        "default": "Example Dynamic Platform"
-      }
+          "title": "Name",
+          "type": "string",
+          "required": true,
+          "default":"HSP-2.17 II Home"
+      },
+      "host": {
+          "title": "Host/IP",
+          "type": "string",
+          "default": "localhost",
+          "required":true,
+          "description": "IP-Address of Haas+Sohn HSP-Pellet-Stove"
+      },
+      "pin": {
+          "title": "pin",
+          "type": "number",
+          "default": 1234,
+          "required":true,
+          "description": "configurated PIN-No. from HSP."
+      },
+      "interval": {
+          "title": "interval",
+          "type": "number",
+          "default": 60,
+          "description": "Seconds waited for refresh of stove-state"
+      },
+      "type": {
+          "title": "Type",
+          "type": "string",
+          "default": "000000",
+          "required":true,
+          "description": "Type of stove"
+      },
+      "serial": {
+          "title": "Serial-No",
+          "type": "string",
+          "default": "000000",
+          "required":true,
+          "description": "Serialnumber of stove"
+      },
     }
   }
 }

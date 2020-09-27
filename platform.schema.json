@@ -1,0 +1,43 @@
+{
+    "plugin_alias": "HspHomebridgePlugin",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "platform": {
+                "title": "Platform",
+                "type": "string",
+                "const": "HspHomebridgePlugin",
+                "readOnly": true
+            },
+            "name":{
+                "title":"Device-Name",
+                "type":"string"
+            },
+            "host":{
+                "title":"IP Adress",
+                "type":"string"
+            },
+            "pin":{
+                "title":"Device PIN",
+                "type":"string",
+                "options": {
+                    "hidden": true
+                }
+            },
+            "interval":{
+                "title": "Request Interval",
+                "type": "number",
+                "default":60,
+                "exclusiveMinimum": 10
+            },
+            "type":{
+                "title":"Device Type",
+                "type":"string"
+            },
+            "serial":{
+                "title":"Device Serial-No.",
+                "type":"string"
+            }
+        }
+    }
+}

@@ -24,7 +24,7 @@ export class HspHomebridgePlatform implements DynamicPlatformPlugin {
       log.debug('Executed didFinishLaunching callback');
 
       this.accessories.forEach(function(accessory){
-        api.unregisterPlatformAccessories(PLUGIN_NAME,PLATFORM_NAME,[accessory]);
+        api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       });
       
       // run the method to discover / register your devices as accessories

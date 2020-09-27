@@ -24,7 +24,12 @@
     "prepublishOnly": "npm run lint && npm run build"
   },
   "keywords": [
-    "homebridge-plugin"
+    "homebridge-plugin",
+    "category-climate",
+    "haas+sohn",
+    "hsp",
+    "pellet",
+    "stove"
   ],
   "dependencies": {
     "await": "^0.2.6",

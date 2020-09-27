@@ -6,19 +6,9 @@ import { Headers } from 'node-fetch';
 import fetch from 'node-fetch';
 import md5 from 'md5';
 
-
-/**
- * Platform Accessory
- * An instance of this class is created for each accessory your platform registers
- * Each accessory may expose multiple services of different service types.
- */
 export default class HspPlatformAccessory {
   private service: Service;
 
-  /**
-   * These are just used to create a working example
-   * You should implement your own code to track the state of your accessory
-   */
   private state = {
     On: false,
     Brightness: 0,
@@ -63,44 +53,14 @@ export default class HspPlatformAccessory {
       .setCharacteristic(this.platform.Characteristic.Model, this.platform.config.type as string)//'HSP 2.17 Home II')
       .setCharacteristic(this.platform.Characteristic.SerialNumber, this.platform.config.serial as string);
 
-    // get the LightBulb service if it exists, otherwise create a new LightBulb service
-    // you can create multiple services for each accessory
+    
     this.service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
 
-    // set the service name, this is what is displayed as the default name on the Home app
-    // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
     this.service.setCharacteristic(this.platform.Characteristic.Name, 'Ofen eingeschalten');
 
-    // each service must implement at-minimum the "required characteristics" for the given service type
-    // see https://developers.homebridge.io/#/service/Lightbulb
-
-    // register handlers for the On/Off Characteristic
     this.service.getCharacteristic(this.platform.Characteristic.On)
       .on('set', this.setRunningOn.bind(this))
       .on('get', this.getRunningOn.bind(this));
-
-    // register handlers for the Brightness Characteristic
-    /*this.service.getCharacteristic(this.platform.Characteristic.Brightness)
-      .on('set', this.setBrightness.bind(this));       // SET - bind to the 'setBrightness` method below
-*/
-
-    /**
-     * Creating multiple services of the same type.
-     * 
-     * To avoid "Cannot add a Service with the same UUID another Service without also defining a unique 'subtype' property." error,
-     * when creating multiple services of the same type, you need to use the following syntax to specify a name and subtype id:
-     * this.accessory.getService('NAME') || this.accessory.addService(this.platform.Service.Lightbulb, 'NAME', 'USER_DEFINED_SUBTYPE_ID');
-     * 
-     * The USER_DEFINED_SUBTYPE must be unique to the platform accessory (if you platform exposes multiple accessories, each accessory
-     * can use the same sub type id.)
-     */
-
-    // Example: add two "motion sensor" services to the accessory
-    /*const motionSensorOneService = this.accessory.getService('Motion Sensor One Name') ||
-      this.accessory.addService(this.platform.Service.MotionSensor, 'Motion Sensor One Name', 'YourUniqueIdentifier-1');
-
-    const motionSensorTwoService = this.accessory.getService('Motion Sensor Two Name') ||
-      this.accessory.addService(this.platform.Service.MotionSensor, 'Motion Sensor Two Name', 'YourUniqueIdentifier-2');*/
 
     const temperatureActualService = this.accessory.getService('Raumtemperatur') ||
       this.accessory.addService(this.platform.Service.TemperatureSensor,'Raumtemperatur',this.platform.api.hap.uuid.generate('HSP-isTemp'));
@@ -245,10 +205,6 @@ export default class HspPlatformAccessory {
 
     this.platform.log.debug('Get WeekProgrammStart On ->', isOn);
     
-
-    // you must call the callback function
-    // the first argument should be null if there were no errors
-    // the second argument should be the value to return
     callback(null, isOn);
   }
 
@@ -287,17 +243,10 @@ export default class HspPlatformAccessory {
     const isOn = this.msg.payload.ecoMode;
 
     this.platform.log.debug('Get Eco-Mode On ->', isOn);
-
-    // you must call the callback function
-    // the first argument should be null if there were no errors
-    // the second argument should be the value to return
     callback(null, isOn);
   }
 
-  /**
-   * Handle "SET" requests from HomeKit
-   * These are sent when the user changes the state of an accessory, for example, turning on a Light bulb.
-   */
+
   async setRunningOn(value: CharacteristicValue, callback: CharacteristicSetCallback) {
 
     // implement your own code to turn your device on/off
@@ -329,19 +278,6 @@ export default class HspPlatformAccessory {
     callback(null);
   }
 
-  /**
-   * Handle the "GET" requests from HomeKit
-   * These are sent when HomeKit wants to know the current state of the accessory, for example, checking if a Light bulb is on.
-   * 
-   * GET requests should return as fast as possbile. A long delay here will result in
-   * HomeKit being unresponsive and a bad user experience in general.
-   * 
-   * If your device takes time to respond you should update the status of your device
-   * asynchronously instead using the `updateCharacteristic` method instead.
-
-   * @example
-   * this.service.updateCharacteristic(this.platform.Characteristic.On, true)
-   */
   getRunningOn(callback: CharacteristicGetCallback) {
 
     // implement your own code to check if the device is on
@@ -349,9 +285,7 @@ export default class HspPlatformAccessory {
 
     this.platform.log.debug('Get Running Running On ->', isOn);
 
-    // you must call the callback function
-    // the first argument should be null if there were no errors
-    // the second argument should be the value to return
+    
     callback(null, isOn);
   }
 
@@ -410,9 +344,6 @@ export default class HspPlatformAccessory {
     callback(null,this.getHeatingState()>0 ? 1 : 0);
   }
 
-  /**
-   * Handle requests to get the current value of the "Configured Name" characteristic
-   */
   handleConfiguredNameGet(callback: CharacteristicGetCallback) {
     this.platform.log.debug('Triggered GET ConfiguredName');
 
@@ -422,9 +353,6 @@ export default class HspPlatformAccessory {
     callback(null, currentValue);
   }
 
-  /**
-   * Handle requests to set the "Configured Name" characteristic
-   */
   async handleConfiguredNameSet(value, callback: CharacteristicSetCallback) {
     this.platform.log.debug('Triggered SET ConfiguredName:', value);
 
@@ -449,7 +377,6 @@ export default class HspPlatformAccessory {
         });
         let data = await response.json();
 
-        //this.platform.log.debug("response: ",data);
         this.hspUpdatePayload(data);
 
 
@@ -459,25 +386,15 @@ export default class HspPlatformAccessory {
     }
   }
 
-  /**
-   * Handle requests to get the current value of the "Input Source Type" characteristic
-   */
   handleInputSourceTypeGet(callback) {
     callback(null, this.platform.Characteristic.InputSourceType.OTHER);
   }
 
 
-  /**
-   * Handle requests to get the current value of the "Is Configured" characteristic
-   */
   handleIsConfiguredGet(callback) {
     callback(null, this.platform.Characteristic.IsConfigured.CONFIGURED);
   }
 
-  
-  /**
-   * Handle requests to get the current value of the "Name" characteristic
-   */
   handleNameGet(callback) {
     this.platform.log.debug('Triggered GET Name');
 
@@ -487,14 +404,9 @@ export default class HspPlatformAccessory {
     callback(null, currentValue);
   }
 
-
-  /**
-   * Handle requests to get the current value of the "Current Visibility State" characteristic
-   */
   handleCurrentVisibilityStateGet(callback) {
     this.platform.log.debug('Triggered GET CurrentVisibilityState');
 
-    // set this to a valid value for CurrentVisibilityState
     const currentValue = 1;
 
     callback(null, currentValue);
@@ -503,7 +415,6 @@ export default class HspPlatformAccessory {
   handleFilterChangeIndicationGet(callback) {
     this.platform.log.debug('Triggered GET FilterChangeIndication');
 
-    // set this to a valid value for FilterChangeIndication
     const currentValue = 1;
 
     callback(null, currentValue);

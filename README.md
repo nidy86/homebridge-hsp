@@ -49,6 +49,8 @@ b. Maintenance countdown/filtermaintenance: shows the kilograms left for making 
 This plugin has been created based on the [homebridge-plugin-template](https://github.com/homebridge/homebridge-plugin-template).
 Description of characteristics (available methods and how to build listener) can be found in the [Homebridge-API](https://developers.homebridge.io/#/)
 
+A special thanks to Github-User [dwyschka](https://github.com/dwyschka), who inspired me to adapt his [Red-Node Project](https://github.com/dwyschka/node-red-contrib-hsp) to Homebridge.
+
 ## Start in Developer Mode
 
 To start the plugin in developer mode run `homebridge -D -P . -U ~/.homebridge-dev/` while beeing in the root directory. A sample config has to be saved at `~/.homebridge-dev/`.

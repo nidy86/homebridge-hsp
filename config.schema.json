@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "HspHomebridgePlugin",
+  "pluginAlias": "Hsp",
   "pluginType": "platform",
   "singular": false,
   "schema": {

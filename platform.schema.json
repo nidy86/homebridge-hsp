@@ -1,12 +1,12 @@
 {
-    "plugin_alias": "HspHomebridgePlugin",
+    "plugin_alias": "Hsp",
     "schema": {
         "type": "object",
         "properties": {
             "platform": {
                 "title": "Platform",
                 "type": "string",
-                "const": "HspHomebridgePlugin",
+                "const": "Hsp",
                 "readOnly": true
             },
             "name":{

@@ -8,8 +8,8 @@
 
 # homebridge-hsp
 
-This is a homebridge plugin to control a Haas+Sohn pellet stoves like the HSP 2.17 Home II via the [HomeBridge Platform](https://github.com/nfarina/homebridge).
-It has been implemented to be used with [Hoobs](https://hoobs.org/) as a plugin.
+This is a homebridge plugin to control a [Haas+Sohn](https://www.haassohn.com/) pellet stoves like the HSP 2.17 Home II via the [HomeBridge Platform](https://github.com/homebridge/homebridge).
+It has been implemented to be used with [Hoobs](https://hoobs.org/) as a plugin and tested with homebridge in development mode.
 
 # Installation
 
@@ -20,7 +20,7 @@ It has been implemented to be used with [Hoobs](https://hoobs.org/) as a plugin.
 
 ```
 "platforms": [{
-    "platform":"HspHomebridgePlugin",
+    "platform":"Hsp",
     "name":"HSP-2.17 II Home",
     "host":"192.168.0.1",
     "pin":"1234",

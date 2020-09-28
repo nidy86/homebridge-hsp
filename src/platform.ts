@@ -4,7 +4,7 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import HspPlatformAccessory from './platformAccessory';
 
 
-export class HspHomebridgePlatform implements DynamicPlatformPlugin {
+export class HspPlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
 

@@ -1,6 +1,6 @@
 import { Service, PlatformAccessory, CharacteristicValue, CharacteristicSetCallback, CharacteristicGetCallback } from 'homebridge';
 
-import { HspHomebridgePlatform } from './platform';
+import { HspPlatform } from './platform';
 
 import { Headers } from 'node-fetch';
 import fetch from 'node-fetch';
@@ -43,7 +43,7 @@ export default class HspPlatformAccessory {
   };
 
   constructor(
-    private readonly platform: HspHomebridgePlatform,
+    private readonly platform: HspPlatform,
     private readonly accessory: PlatformAccessory,
   ) {
 

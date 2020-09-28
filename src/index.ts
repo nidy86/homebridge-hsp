@@ -1,8 +1,8 @@
 import { API } from 'homebridge';
 
-import { PLATFORM_NAME } from './settings';
-import { HspHomebridgePlatform } from './platform'; 
+import { PLUGIN_NAME,PLATFORM_NAME } from './settings';
+import { HspPlatform } from './platform'; 
 
 export = (api: API) => {
-  api.registerPlatform(PLATFORM_NAME, HspHomebridgePlatform);
+  api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, HspPlatform);
 }

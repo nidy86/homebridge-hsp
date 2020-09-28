@@ -188,7 +188,7 @@ export default class HspPlatformAccessory {
       setData['wprg'] = value as boolean;
 
       const dataToSend = JSON.stringify(setData);
-      const header = this.hspCreateRequestHeader(this.url, hash)
+      const header = this.hspCreateRequestHeader(this.url, hash);
       
       const response = await fetch(`http://${this.url}/status.cgi`, {
         headers: header,

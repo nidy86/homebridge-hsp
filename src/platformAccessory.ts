@@ -7,7 +7,12 @@ import fetch from 'node-fetch';
 import md5 from 'md5';
 
 export default class HspPlatformAccessory {
-  private service: Service;
+  private runService: Service;
+  private weekPrgService: Service;
+  private ecoModeService: Service;
+  private actualTempService: Service;
+  private stateService: Service;
+  private setTempService: Service;
 
   private state = {
     On: false,
@@ -33,6 +38,7 @@ export default class HspPlatformAccessory {
         type: 'HSP-1/2',
         serialNumber: '0000000',
       },
+      pgi: false,
       ignitions: -1,
       onTime: -1,
       consumption: -1,
@@ -47,6 +53,9 @@ export default class HspPlatformAccessory {
     private readonly accessory: PlatformAccessory,
   ) {
 
+    this.url = this.platform.config.host as string;
+    const interval = this.platform.config.interval as number * 1000;
+    
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Haas+Sohn')
@@ -54,72 +63,76 @@ export default class HspPlatformAccessory {
       .setCharacteristic(this.platform.Characteristic.SerialNumber, this.platform.config.serial as string);
 
     
-    this.service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
+    this.runService = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, 'Ofen eingeschalten');
+    this.runService.setCharacteristic(this.platform.Characteristic.Name, 'Ofen eingeschalten');
 
-    this.service.getCharacteristic(this.platform.Characteristic.On)
+    this.runService.getCharacteristic(this.platform.Characteristic.On)
       .on('set', this.setRunningOn.bind(this))
       .on('get', this.getRunningOn.bind(this));
 
-    const temperatureActualService = this.accessory.getService('Raumtemperatur') ||
-      this.accessory.addService(this.platform.Service.TemperatureSensor, 'Raumtemperatur', this.platform.api.hap.uuid.generate('HSP-isTemp'));
+    this.actualTempService = this.accessory.getService('Raumtemperatur') ||
+      this.accessory.addService(this.platform.Service.TemperatureSensor, 'Raumtemperatur', 'HSP-isTemp');
+    
+    this.actualTempService.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
+      .on('get', this.getActualTemperature.bind(this));
     
     //const temperatureSetService = this.accessory.getService('Solltemperatur') ||
     //  this.accessory.addService(this.platform.Service.TemperatureSensor,'Solltemperatur',this.platform.api.hap.uuid.generate('HSP-setTemp'));
 
-    const filterMaintenance = this.accessory.getService('Filter') ||
-      this.accessory.addService(this.platform.Service.FilterMaintenance, 'Filter', this.platform.api.hap.uuid.generate('HSP-filter'));
+    //const filterMaintenance = this.accessory.getService('Filter') ||
+    //  this.accessory.addService(this.platform.Service.FilterMaintenance, 'Filter', this.platform.api.hap.uuid.generate('HSP-filter'));
 
-    filterMaintenance.getCharacteristic(this.platform.Characteristic.FilterChangeIndication)
-      .on('get', this.handleFilterChangeIndicationGet.bind(this));
-    const stateService = this.accessory.getService('Status') ||
-      this.accessory.addService(this.platform.Service.Lightbulb, 'Status', this.platform.api.hap.uuid.generate('HSP-state'));
+    /*filterMaintenance.getCharacteristic(this.platform.Characteristic.FilterChangeIndication)
+      .on('get', this.handleFilterChangeIndicationGet.bind(this));*/
 
-    stateService.getCharacteristic(this.platform.Characteristic.Brightness)
+    this.stateService = this.accessory.getService('Status') ||
+      this.accessory.addService(this.platform.Service.Lightbulb, 'Status', 'HSP-state');
+
+    this.stateService.getCharacteristic(this.platform.Characteristic.Brightness)
       .on('set', this.setStateBrightness.bind(this))
       .on('get', this.getStateBrightness.bind(this));
 
-    stateService.getCharacteristic(this.platform.Characteristic.On)
+    this.stateService.getCharacteristic(this.platform.Characteristic.On)
       .on('set', this.setState.bind(this))
       .on('get', this.getState.bind(this));
     
 
-    const weekProgrammService = this.accessory.getService('Wochenprogramm') ||
-      this.accessory.addService(this.platform.Service.Switch, 'Wochenprogramm', this.platform.api.hap.uuid.generate('HSP-weekProgrammStart'));
+    this.weekPrgService = this.accessory.getService('Wochenprogramm') ||
+      this.accessory.addService(this.platform.Service.Switch, 'Wochenprogramm', 'HSP-weekProgrammStart');
 
-    weekProgrammService.getCharacteristic(this.platform.Characteristic.On)
+    this.weekPrgService.getCharacteristic(this.platform.Characteristic.On)
       .on('set', this.setWeekProgrammOn.bind(this))
       .on('get', this.getWeekProgrammOn.bind(this));
 
     
-    const ecoModeService = this.accessory.getService('Eco-Mode') ||
-      this.accessory.addService(this.platform.Service.Switch, 'Eco-Mode', this.platform.api.hap.uuid.generate('HSP-ecoMode'));
+    this.ecoModeService = this.accessory.getService('Eco-Mode') ||
+      this.accessory.addService(this.platform.Service.Switch, 'Eco-Mode', 'HSP-ecoMode');
 
-    ecoModeService.getCharacteristic(this.platform.Characteristic.On)
+    this.ecoModeService.getCharacteristic(this.platform.Characteristic.On)
       .on('set', this.setEcoModeOn.bind(this))
       .on('get', this.getEcoModeOn.bind(this));
 
 
 
 
-    const inputSetTemperature = this.accessory.getService('Solltemperatur') ||
-      this.accessory.addService(this.platform.Service.InputSource, 'Solltemperatur', this.platform.api.hap.uuid.generate('HSP-setTemp'));
+    this.setTempService = this.accessory.getService('Solltemperatur') ||
+      this.accessory.addService(this.platform.Service.InputSource, 'Solltemperatur', 'HSP-setTemp');
 
-    inputSetTemperature.getCharacteristic(this.platform.Characteristic.ConfiguredName)
+    this.setTempService.getCharacteristic(this.platform.Characteristic.ConfiguredName)
       .on('get', this.handleConfiguredNameGet.bind(this))
       .on('set', this.handleConfiguredNameSet.bind(this));
 
-    inputSetTemperature.getCharacteristic(this.platform.Characteristic.InputSourceType)
+    this.setTempService.getCharacteristic(this.platform.Characteristic.InputSourceType)
       .on('get', this.handleInputSourceTypeGet.bind(this));
 
-    inputSetTemperature.getCharacteristic(this.platform.Characteristic.IsConfigured)
+    this.setTempService.getCharacteristic(this.platform.Characteristic.IsConfigured)
       .on('get', this.handleIsConfiguredGet.bind(this));
 
-    inputSetTemperature.getCharacteristic(this.platform.Characteristic.Name)
+    this.setTempService.getCharacteristic(this.platform.Characteristic.Name)
       .on('get', this.handleNameGet.bind(this));
 
-    inputSetTemperature.getCharacteristic(this.platform.Characteristic.CurrentVisibilityState)
+    this.setTempService.getCharacteristic(this.platform.Characteristic.CurrentVisibilityState)
       .on('get', this.handleCurrentVisibilityStateGet.bind(this));
       
     
@@ -132,45 +145,73 @@ export default class HspPlatformAccessory {
      * Updating characteristics values asynchronously.
      * 
      */
-    this.url = this.platform.config.host as string;
-    const interval = this.platform.config.interval as number * 1000;
     setInterval(async () => {
-
-      const response = await fetch(`http://${this.url}/status.cgi`);
-      const data = await response.json();
-
-      //let changed = this.msg.payload.weekProgramStart!=data.wprg;
-      //this.platform.log.debug('Weekprogramm changed',changed);
-
-
-      this.hspUpdatePayload(data);
-      //this.platform.log.debug('response:',this.msg.payload);
-
-      // push the new value to HomeKit
-      temperatureActualService.updateCharacteristic(
-        this.platform.Characteristic.CurrentTemperature, 
-        this.msg.payload.isTemp.toFixed(1),
-      );
-      //temperatureSetService.updateCharacteristic(this.platform.Characteristic.CurrentTemperature,this.msg.payload.setTemp);
-      inputSetTemperature.updateCharacteristic(
-        this.platform.Characteristic.InputSourceType.ConfiguredName, 
-        this.msg.payload.setTemp.toFixed(1),
-      );
-
-      //if(changed){
-      this.service.updateCharacteristic(this.platform.Characteristic.On, this.msg.payload.start);
-      weekProgrammService.updateCharacteristic(this.platform.Characteristic.On, this.msg.payload.weekProgramStart);
-      ecoModeService.updateCharacteristic(this.platform.Characteristic.On, this.msg.payload.ecoMode);
-
-      stateService.updateCharacteristic(this.platform.Characteristic.Brightness, this.getHeatingState());
-      filterMaintenance.updateCharacteristic(this.platform.Characteristic.FilterChangeIndication, 1);
-      //}
-
-      
-
-      this.platform.log.debug('Temperature (ACTUAL):', this.msg.payload.isTemp.toFixed(1));
-      this.platform.log.debug('Temperature (SET):', this.msg.payload.setTemp.toFixed(1));
+      this.fetchInformation();
     }, interval);
+  }
+
+  async initializeServices(model: string, serial: string){
+
+  }
+
+  async fetchInformation(){
+    //const response = await fetch(`http://${this.url}/status.cgi`);
+    //const data = await response.json();
+    await fetch(`http://${this.url}/status.cgi`)
+      .then(response => {
+        if(response.ok){
+          response.json().then((data)=>{
+            //let changed = this.msg.payload.weekProgramStart!=data.wprg;
+            //this.platform.log.debug('Weekprogramm changed',changed);
+
+
+            this.hspUpdatePayload(data);
+            //this.platform.log.debug('response:',this.msg.payload);
+
+            // push the new value to HomeKit
+            this.actualTempService.updateCharacteristic(
+              this.platform.Characteristic.CurrentTemperature, 
+              this.msg.payload.isTemp.toFixed(1),
+            );
+
+            this.setTempService.updateCharacteristic(
+              this.platform.Characteristic.InputSourceType.ConfiguredName, 
+              this.msg.payload.setTemp.toFixed(0),
+            );
+
+            
+            this.runService.updateCharacteristic(this.platform.Characteristic.On, this.msg.payload.start);
+            this.weekPrgService.updateCharacteristic(this.platform.Characteristic.On, this.msg.payload.weekProgramStart);
+            this.ecoModeService.updateCharacteristic(this.platform.Characteristic.On, this.msg.payload.ecoMode);
+
+            this.stateService.updateCharacteristic(this.platform.Characteristic.Brightness, this.getHeatingState());
+            
+
+            
+
+            this.platform.log.debug('Temperature (ACTUAL/SET):', this.msg.payload.isTemp.toFixed(1), this.msg.payload.setTemp.toFixed(1));
+          });
+        } else {
+          this.platform.log.debug('RESPONSE is broken. Waiting for next request.');
+        }
+      }).catch(error => {
+        this.platform.log.debug('FETCH-ERROR from url. Waiting for next request...');
+      });
+  }
+
+  /**
+   * REQUIRED - This must return an array of the services you want to expose.
+   * This method must be named "getServices".
+   */
+  getServices(){
+    return [
+      this.runService,
+      this.weekPrgService,
+      this.ecoModeService,
+      this.actualTempService,
+      this.stateService,
+      this.setTempService,
+    ];
   }
   
 
@@ -349,6 +390,10 @@ export default class HspPlatformAccessory {
     callback(null, this.getHeatingState()>0 ? 1 : 0);
   }
 
+  getActualTemperature(callback: CharacteristicGetCallback) {
+    callback(null, this.msg.payload.isTemp);
+  }
+
   handleConfiguredNameGet(callback: CharacteristicGetCallback) {
     this.platform.log.debug('Triggered GET ConfiguredName');
 
@@ -370,7 +415,7 @@ export default class HspPlatformAccessory {
       const hash = this.hspCalculatePin(nonce, this.platform.config.pin as string);
       
       const setData = {};
-      setData['sp_temp'] = value as number;
+      setData['sp_temp'] = parseInt(value);
 
       const dataToSend = JSON.stringify(setData);
       const header = this.hspCreateRequestHeader(this.url, hash);
@@ -445,6 +490,7 @@ export default class HspPlatformAccessory {
         type: data.meta.typ,
         serialNumber: data.meta.sn,
       },
+      pgi: data.pgi,
       ignitions: data.ignitions,
       onTime: data.on_time,
       consumption: data.consumption,

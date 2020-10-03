@@ -37,7 +37,7 @@ This plugin adds a new platform to Homekit. Inside the platform it shows serval 
 3. a switch to start/stop the weekprogramm
 4. a switch to run in Eco-Mode
 5. a lightbulb that represents the heating process (Standby, Starting-Zones 1-20: 0-90%, Heating 100%, Cooling 100-0% counting down)
-6. an input source that give you the possiblity to set a certain temperatur (actullay not working! It only shows the temperature set, but editing changes nothing yet)
+6. an input source that give you the possiblity to set a certain temperatur
 
 ## Additionally there are some extra features planed:
 a. Cleaning countdown/filtermaintenance: shows the time left for cleaning the stove (every 20h! with this model)

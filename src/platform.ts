@@ -20,7 +20,7 @@ export class HspPlatform implements DynamicPlatformPlugin {
     this.config = config;
     this.log.debug('Finished initializing platform:', this.config.name);
 
-    this.api.on('didFinishLaunching', () => {
+    /*this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
 
       this.accessories.forEach(function(accessory){
@@ -30,7 +30,7 @@ export class HspPlatform implements DynamicPlatformPlugin {
       // run the method to discover / register your devices as accessories
       this.discoverDevices();
 
-    });
+    });*/
 
   }
 

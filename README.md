@@ -30,6 +30,15 @@ It has been implemented to be used with [Hoobs](https://hoobs.org/) as a plugin 
 }]
 ```
 
+4. In order the device is not discovered automatically, follow this steps:
+
+- Open the Home App
+- Go to Add Accessory
+- On the bottom click Don't Have a Code or Can't scan?
+- Stove should appear on Nearby Accessories section
+- Click on it and follow the steps in order to add it
+- The HOME SETUP PIN is in the HOOBS Dashboard.
+
 # What does this plugin do?
 This plugin adds a new platform to Homekit. Inside the platform it shows serval services:
 1. the actual temperature around the stove

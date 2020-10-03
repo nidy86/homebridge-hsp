@@ -45,7 +45,7 @@ export default class HspPlatformAccessory {
       maintenance: -1,
       cleaning: -1,
       zone: 0,
-    }
+    },
   };
 
   constructor(
@@ -76,15 +76,6 @@ export default class HspPlatformAccessory {
     
     this.actualTempService.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
       .on('get', this.getActualTemperature.bind(this));
-    
-    //const temperatureSetService = this.accessory.getService('Solltemperatur') ||
-    //  this.accessory.addService(this.platform.Service.TemperatureSensor,'Solltemperatur',this.platform.api.hap.uuid.generate('HSP-setTemp'));
-
-    //const filterMaintenance = this.accessory.getService('Filter') ||
-    //  this.accessory.addService(this.platform.Service.FilterMaintenance, 'Filter', this.platform.api.hap.uuid.generate('HSP-filter'));
-
-    /*filterMaintenance.getCharacteristic(this.platform.Characteristic.FilterChangeIndication)
-      .on('get', this.handleFilterChangeIndicationGet.bind(this));*/
 
     this.stateService = this.accessory.getService('Status') ||
       this.accessory.addService(this.platform.Service.Lightbulb, 'Status', 'HSP-state');
@@ -148,10 +139,6 @@ export default class HspPlatformAccessory {
     setInterval(async () => {
       this.fetchInformation();
     }, interval);
-  }
-
-  async initializeServices(model: string, serial: string){
-
   }
 
   async fetchInformation(){

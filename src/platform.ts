@@ -71,11 +71,11 @@ export class HspPlatform implements DynamicPlatformPlugin {
 
         //this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
 
-        this.api.publishExternalAccessories(PLUGIN_NAME,[accessory]);
+        this.api.publishExternalAccessories(PLUGIN_NAME, [accessory]);
       }
     }
 
-    for (let cachedAccessory of this.accessories) {
+    for (const cachedAccessory of this.accessories) {
       this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [cachedAccessory]);
     }
 

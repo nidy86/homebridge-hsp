@@ -2,7 +2,7 @@
   "private": false,
   "displayName": "HaasSohn HSP Pellet Stove",
   "name": "homebridge-hsp",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A plugin to control your HSP pellet stove with homebridge.",
   "license": "Apache-2.0",
   "repository": {

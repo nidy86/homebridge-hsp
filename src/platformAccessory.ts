@@ -205,7 +205,7 @@ export default class HspPlatformAccessory {
           this.platform.log.debug('RESPONSE is broken. Waiting for next request.');
         }
       }).catch(error => {
-        this.platform.log.debug('FETCH-ERROR from url. Waiting for next request...');
+        this.platform.log.debug('FETCH-ERROR from url. Waiting for next request...', error.message);
       });
   }
 
@@ -487,8 +487,7 @@ export default class HspPlatformAccessory {
   }
 
   handleCleaningChargingStateGet(callback: CharacteristicGetCallback) {
-    
-    callback(null,  this.platform.Characteristic.ChargingState.NOT_CHARGING);
+    callback(null, this.platform.Characteristic.ChargingState.NOT_CHARGING);
   }
 
   handleCleaningStatusLowGet(callback: CharacteristicGetCallback) {
@@ -497,7 +496,7 @@ export default class HspPlatformAccessory {
       null, 
       this.msg.payload.cleaning<120 ? 
         this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : 
-        this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL
+        this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL,
     );
   }
 
@@ -510,7 +509,7 @@ export default class HspPlatformAccessory {
 
   handleMaintenanceChargingStateGet(callback: CharacteristicGetCallback) {
     
-    callback(null,  this.platform.Characteristic.ChargingState.NOT_CHARGING);
+    callback(null, this.platform.Characteristic.ChargingState.NOT_CHARGING);
   }
 
   handleMaintenanceStatusLowGet(callback: CharacteristicGetCallback) {
@@ -519,7 +518,7 @@ export default class HspPlatformAccessory {
       null, 
       this.msg.payload.maintenance<10 ? 
         this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : 
-        this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL
+        this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL,
     );
   }
 

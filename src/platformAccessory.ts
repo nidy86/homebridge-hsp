@@ -13,6 +13,8 @@ export default class HspPlatformAccessory {
   private actualTempService: Service;
   private stateService: Service;
   private setTempService: Service;
+  private cleaningService: Service;
+  private maintenanceService: Service;
 
   private state = {
     On: false,
@@ -127,9 +129,30 @@ export default class HspPlatformAccessory {
       .on('get', this.handleCurrentVisibilityStateGet.bind(this));
       
     
-    /**
-     * TEST Section: Define
-     */
+    this.cleaningService = this.accessory.getService('Reinigung') || 
+      this.accessory.addService(this.platform.Service.BatteryService, 'Reinigung', 'HSP-cleaning');
+
+    this.cleaningService.getCharacteristic(this.platform.Characteristic.BatteryLevel)
+      .on('get', this.handleCleaningLevelGet.bind(this));
+
+    this.cleaningService.getCharacteristic(this.platform.Characteristic.ChargingState)
+      .on('get', this.handleCleaningChargingStateGet.bind(this));
+
+    this.cleaningService.getCharacteristic(this.platform.Characteristic.StatusLowBattery)
+      .on('get', this.handleCleaningStatusLowGet.bind(this));
+
+    
+    this.maintenanceService = this.accessory.getService('Wartung') || 
+      this.accessory.addService(this.platform.Service.BatteryService, 'Wartung', 'HSP-maintenance');
+
+    this.maintenanceService.getCharacteristic(this.platform.Characteristic.BatteryLevel)
+      .on('get', this.handleMaintenanceLevelGet.bind(this));
+
+    this.maintenanceService.getCharacteristic(this.platform.Characteristic.ChargingState)
+      .on('get', this.handleMaintenanceChargingStateGet.bind(this));
+
+    this.maintenanceService.getCharacteristic(this.platform.Characteristic.StatusLowBattery)
+      .on('get', this.handleMaintenanceStatusLowGet.bind(this));
     
     
     /**
@@ -456,6 +479,49 @@ export default class HspPlatformAccessory {
     callback(null, currentValue);
   }
 
+  handleCleaningLevelGet(callback: CharacteristicGetCallback) {
+    //Cleaning has to be done after every 20h 
+    const minutes_left = (this.msg.payload.cleaning > (60*20)) ? 1200 : this.msg.payload.cleaning;
+
+    callback(null, Math.round(minutes_left/12));
+  }
+
+  handleCleaningChargingStateGet(callback: CharacteristicGetCallback) {
+    
+    callback(null,  this.platform.Characteristic.ChargingState.NOT_CHARGING);
+  }
+
+  handleCleaningStatusLowGet(callback: CharacteristicGetCallback) {
+    
+    callback(
+      null, 
+      this.msg.payload.cleaning<120 ? 
+        this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : 
+        this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL
+    );
+  }
+
+  handleMaintenanceLevelGet(callback: CharacteristicGetCallback) {
+    //Maintenance has to be done after every 1000kg
+    const minutes_left = (this.msg.payload.maintenance > 1000) ? 1000 : this.msg.payload.cleaning;
+
+    callback(null, Math.round(minutes_left/10));
+  }
+
+  handleMaintenanceChargingStateGet(callback: CharacteristicGetCallback) {
+    
+    callback(null,  this.platform.Characteristic.ChargingState.NOT_CHARGING);
+  }
+
+  handleMaintenanceStatusLowGet(callback: CharacteristicGetCallback) {
+    
+    callback(
+      null, 
+      this.msg.payload.maintenance<10 ? 
+        this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : 
+        this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL
+    );
+  }
 
 
   /**

@@ -141,6 +141,9 @@ export default class HspPlatformAccessory {
     this.cleaningService.getCharacteristic(this.platform.Characteristic.StatusLowBattery)
       .on('get', this.handleCleaningStatusLowGet.bind(this));
 
+    this.cleaningService.getCharacteristic(this.platform.Characteristic.Name)
+      .on('get', this.handleCleaningNameGet.bind(this));
+
     
     this.maintenanceService = this.accessory.getService('Wartung') || 
       this.accessory.addService(this.platform.Service.BatteryService, 'Wartung', 'HSP-maintenance');
@@ -154,6 +157,8 @@ export default class HspPlatformAccessory {
     this.maintenanceService.getCharacteristic(this.platform.Characteristic.StatusLowBattery)
       .on('get', this.handleMaintenanceStatusLowGet.bind(this));
     
+    this.maintenanceService.getCharacteristic(this.platform.Characteristic.Name)
+      .on('get', this.handleMaintenanceNameGet.bind(this));
     
     /**
      * Updating characteristics values asynchronously.
@@ -500,6 +505,11 @@ export default class HspPlatformAccessory {
     );
   }
 
+  handleCleaningNameGet(callback: CharacteristicGetCallback) {
+    
+    callback(null, 'Reinigung Brennerraum');
+  }
+
   handleMaintenanceLevelGet(callback: CharacteristicGetCallback) {
     //Maintenance has to be done after every 1000kg
     const minutes_left = (this.msg.payload.maintenance > 1000) ? 1000 : this.msg.payload.cleaning;
@@ -520,6 +530,11 @@ export default class HspPlatformAccessory {
         this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : 
         this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL,
     );
+  }
+
+  handleMaintenanceNameGet(callback: CharacteristicGetCallback) {
+    
+    callback(null, 'Wartung Pelletofen');
   }
 
 

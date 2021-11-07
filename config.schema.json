@@ -44,7 +44,7 @@
           "default": "000000",
           "required":true,
           "description": "Serialnumber of stove"
-      },
+      }
     }
   }
 }
